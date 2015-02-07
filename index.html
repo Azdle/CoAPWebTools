@@ -32,7 +32,7 @@
       }
 
       function slisttoab(slist) {
-        var r = /(?:0x)[0-9a-fA-F]{1,2}/g;
+        var r = /(?:0x)?[0-9a-fA-F]{1,2}/g;
 
         var match;
         var i = 0
@@ -101,7 +101,7 @@
   </head>
   <body>
     <h2>Enter Bytes to Send in Hex: </h2>
-    <textarea id="pktin">64,0,0,0</textarea>
+    <textarea id="pktin">0x40,0,0,0</textarea>
     <input type="button" onclick="send_pkt()" value="Send"/>
     <h2>Comms: </h2>
     <ul id="output"></ul>
