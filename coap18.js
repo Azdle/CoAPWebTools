@@ -579,10 +579,10 @@ Copper.CoapPacket.prototype = {
 
 		str += "Version: " + Copper.VERSION + ", ";
 		str += "Type:    " + this.type + ", ";
-		str += "Code: " + Copper.VERSION + ", ";
-		str += "MID: " + Copper.VERSION + ", ";
+		str += "Code:    " + this.getCode(true) + ", ";
+		str += "MID:     " + this.tid + ", ";
 		str += "Token:   " + this.options[Copper.OPTION_TOKEN][1] + ", ";
-		str += "Options: { ";
+		str += "Options:  { ";
 	    
 	    // options
 	    this.optionCount = 0;
