@@ -22,13 +22,22 @@
 
     <script>
     var g;
+      String.prototype.prepad = function(num, prepender) {
+        var str = this;
+        while (str.length < num) {
+          str = prepender.concat(str);
+        }
+
+        return str
+      }
+
       function abtoslist(ab) {
         var str = ""
         for (var i = ab.length - 1; i >= 0; i--) {
-          str = ab[i].toString(16) +", " + str;
+          str = ab[i].toString(16).prepad(2, "0") + str;
         };
 
-        return str;
+        return "0x" + str;
       }
 
       function slisttoab(slist) {
@@ -88,11 +97,17 @@
 
         console.log(pkt)
 
-        p = new Copper.CoapPacket();
-        p.parse(pkt);
-        console.log(p.toString())
+        var pkt_str
+        try {
+          p = new Copper.CoapPacket();
+          p.parse(pkt);
+          pkt_str = p.toString();
+        } catch (e) {
+          pkt_str = abtoslist(pkt).toString();
+        }
+        console.log()
         var li = document.createElement('li');
-        li.innerHTML = "--> " + p.toString();
+        li.innerHTML = "--> " + pkt_str;
         var out = document.querySelector('#output');
         //out.insertBefore(li, out.firstChild);
         out.appendChild(li);
