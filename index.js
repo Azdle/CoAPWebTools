@@ -20,18 +20,15 @@ server.listen(port);
 
 console.log("http server listening on %d", port);
 
-var wss = new WebSocketServer({server: server});
-console.log("websocket server created");
+var verifyPathOnConnect = function(info, cb) {
+  console.log(info);
+  console.log(info.req.url);
 
-wss.on("connection", function(ws) {
-  //console.log(ws);
-  console.log(ws.upgradeReq.url);
-
-  var host_port_list = host_port_re.exec(ws.upgradeReq.url);
+  var host_port_list = host_port_re.exec(info.req.url);
 
   if (host_port_list === null) {
     console.log("bad request")
-    ws.close();
+    cb(false, 400, "Bad Request")
     return;
   }
 
@@ -45,12 +42,24 @@ wss.on("connection", function(ws) {
 
   if (!dest_in_whitelist) {
     console.log("attempted connection on non-whitelisted dest: " +
-                 ws.upgradeReq.url)
-    ws.close();
+                 info.req.url)
+    cb(false, 403, "Forbidden")
     return;
   }
 
+  cb(true)
+}
+
+var wss = new WebSocketServer({server: server, verifyClient: verifyPathOnConnect});
+console.log("websocket server created");
+
+
+wss.on("connection", function(ws) {
   var usock = dgram.createSocket("udp4");
+
+  var host_port_list = host_port_re.exec(ws.upgradeReq.url);
+  var host = host_port_list[1];
+  var port = host_port_list[2];
 
   usock.on("message", function(msg, rinfo) {
     console.log("usock got message");
@@ -74,8 +83,8 @@ wss.on("connection", function(ws) {
   })
 
   ws.on("message", function(msg) {
-    console.log("websocket got message");
-    var msg = new Buffer(msg);
+    console.log("websocket got message", msg);
+    console.log(msg, 0, msg.length, port, host)
     usock.send(msg, 0, msg.length, port, host);
   })
 
