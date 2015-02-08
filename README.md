@@ -1,6 +1,13 @@
-# Node.js Websocket Test
+# WebDatagramProtocol
 
-A tiny demo using the [einaros/ws](http://einaros.github.io/ws/) WebSockets implementation.
+This is a simple node.js server that will proxy binary websocket requests
+straight through to UDP.
+
+# Configuration
+
+You'll need to add the domain name (or the ip) and port number, in the form of a
+regular expression, of the server you'd like to proxy to into the whitelist
+before it will let you proxy to that server.
 
 # Running Locally
 
