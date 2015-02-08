@@ -21,7 +21,6 @@
     </style>
 
     <script>
-    var g;
       String.prototype.prepad = function(num, prepender) {
         var str = this;
         while (str.length < num) {
@@ -63,7 +62,6 @@
       var us = new WebSocket("ws://" + location.host + "/coap.exosite.com/5683/", ["wdp"]);
       us.binaryType = "arraybuffer";
       us.onmessage = function (event) {
-        g = event.data;
         var buf = Uint8Array(event.data);
         var pkt = new Array();
         for(var i in buf) {
