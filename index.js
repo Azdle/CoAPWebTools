@@ -9,6 +9,7 @@ var port = process.env.PORT || 5000;
 var host_port_re = new RegExp("\/([^\/]+)/([0-9]+)\/?");
 
 var whitelist = [
+  {host: RegExp("localhost"), port: RegExp("\\d+")},
   {host: RegExp("coap\.exosite\.com"), port: RegExp("5683")},
   {host: RegExp("udp\.exosite\.com"), port: RegExp("18494")},
 ];
