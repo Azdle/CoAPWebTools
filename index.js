@@ -86,7 +86,7 @@ wss.on("connection", function(ws) {
   ws.on("message", function(msg) {
     console.log("websocket got message", msg);
     console.log(msg, 0, msg.length, port, host)
-    if (msg.length > 0) {
+    if (msg != null && msg.length > 0) {
       usock.send(msg, 0, msg.length, port, host);
     } else {
       console.warn("received message with zero length, dropping");
