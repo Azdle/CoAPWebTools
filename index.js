@@ -14,7 +14,7 @@ var whitelist = [
   {host: RegExp("udp\.exosite\.com"), port: RegExp("18494")},
 ];
 
-app.use(express.static(__dirname + "/"));
+app.use(express.static(__dirname + "/static/"));
 
 var server = http.createServer(app);
 server.listen(port);
