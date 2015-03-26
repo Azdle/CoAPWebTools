@@ -27,19 +27,16 @@ var WebDatagramSocket = (function() {
 		this.ws.binaryType = "arraybuffer";
 		this.ws.connection_time = Date.now();
 
-		this.keepaliveTimerId = window.setTimeout(sendKeepalive.bind(this), 45000);
+		if(this.options.useKeepalive == true) {
+			this.keepaliveTimerId = window.setInterval(sendKeepalive.bind(this), 45000);
+		}
 
 		function handleIncomingMessage(event){
 			var buf = new Uint8Array(event.data);
 
 			if(typeof(this.onmessage) === "function"){
 				this.onmessage(buf)
-			}
-
-			if(this.options.useKeepalive == true) {
-				window.clearTimeout(this.keepaliveTimerId);
-				this.keepaliveTimerId = window.setTimeout(sendKeepalive.bind(this), 45000);
-			}
+			};
 		}
 
 		this.ws.onmessage = handleIncomingMessage.bind(this);
@@ -83,9 +80,10 @@ var WebDatagramSocket = (function() {
 	//
 
 	function sendKeepalive(){
+		// a zero length packet will get dropped by the proxy, but will keep
+		// Heroku from closing the websocket on us.
 		var empty = new Uint8Array(0);
 		this.ws.send(empty);
-		this.keepaliveTimerId = window.setTimeout(sendKeepalive.bind(this), 45000);
 	}
 
 	//
@@ -93,11 +91,6 @@ var WebDatagramSocket = (function() {
 	//
 
 	WebDatagramSocket.prototype.send = function(buf) {
-			if(this.options.useKeepalive == true) {
-				window.clearTimeout(this.keepaliveTimerId);
-				this.keepaliveTimerId = window.setTimeout(sendKeepalive.bind(this), 45000);
-			}
-
 			return this.ws.send(buf);
 	}
 
