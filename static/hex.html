@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+
+	<head>
+		<meta charset="utf-8">
+
+		<title>CoAP Terminal</title>
+
+		<meta name="description" content="CoAP Terminal">
+		<meta name="author" content="Patrick Barrett">
+
+		<!-- my local scripts -->
+		<script type="text/javascript" src="js/dump.js"></script>
+		<script type="text/javascript" src="js/webdatagram.js"></script>
+		<script type="text/javascript" src="js/coap.js"></script>
+
+		<script>
+			<!--// Global Objects -->
+			var dumper = new Dump({
+				lineNumbers: true,
+				asciiPreview: true,
+			});
+			var wd = new WebDatagramSocket("coap.exosite.com", 5683, {});
+			var c = new Coap({});
+
+			// Interactive Elements Setup and Handlers
+			function setupIOPair(subSel, reqHandler, resHandler) {
+				var reqText = document.getElementById(subSel + "-request");
+				var resText = document.getElementById(subSel + "-response");
+				var subButn = document.getElementById(subSel + "-sub");
+				var clrButn = document.getElementById(subSel + "-clr");
+
+				function callbackTransform(text) {
+					resHandler(text, resText);
+				}
+
+				clrButn.onclick	= function(e) { resText.value = ''; };
+				subButn.onclick	= function(e) { reqHandler(reqText.value, callbackTransform); };
+				reqText.onkeydown = function(e) {
+					if (e.keyCode == 13 && (e.shiftKey || e.ctrlKey)) {
+						//console.log("submit", subSel);
+						reqHandler(reqText.value, callbackTransform);
+						return false;
+					} else if (e.keyCode == 8 && (e.shiftKey || e.ctrlKey)) {
+						//console.log("clear", subSel);
+						resText.value = '';
+						return false;
+					}
+				};
+			}
+
+			function appendAndScrollTextArea(text, textArea) {
+				if (textArea.value == ""){
+					textArea.value += text;
+					textArea.scrollTop = textArea.scrollHeight;
+				} else {
+					textArea.value += "\n\n" + text;
+					textArea.scrollTop = textArea.scrollHeight;
+				}
+			}
+
+			function hexSimple(text, callback){
+				wd.onmessage = function(ab){
+					var hexDump = dumper.dump(ab);
+
+					callback(hexDump);
+				}
+				//console.log(text)
+				var pkt = dumper.parse(text);
+				wd.send(pkt);
+			}
+
+		</script>
+
+		<!--[if lt IE 9]>
+		<script src="lib/js/html5shiv.js"></script>
+		<![endif]-->
+
+		<style type="text/css">
+			textarea.left-half, textarea.right-half{
+				width: 100%;
+				height: 50%;
+				box-sizing: border-box;
+				display:block;
+			}
+
+			#terminalbox {
+				position:absolute;
+				top: 10px;
+				left: 10px;
+				right: 10px;
+				bottom: 50px;
+				display:block;
+				box-sizing: border-box;
+			}
+
+			#statusbar {
+				position:absolute;
+				height: 30px;
+				left: 20px;
+				right: 20px;
+				bottom: 10px;
+				display:block;
+				box-sizing: border-box;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div id="terminalbox">
+			<textarea id="hex-request" class="left-half">40 01 00 37 b2 74 73</textarea>
+			<textarea id="hex-response" class="right-half"></textarea>
+		</div>
+		<div id="statusbar">
+			<input type=button name="doit" id="hex-sub" value="Do It!" onclick=""/>
+			<input type=button name="clear" id="hex-clr" value="Clear" onclick=""/>
+			<label>
+				<input type=checkbox name="mode" id="hex-mode" value="0" onclick=""/>
+				Automatic ACK
+			</label>
+		</div>
+
+		<script type="text/javascript">
+			setupIOPair("hex", hexSimple, appendAndScrollTextArea);
+		</script>
+	</body>
+</html>

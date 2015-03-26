@@ -101,10 +101,21 @@ var Dump = (function() {
 		return dumps;
 	}
 
-	Dump.prototype.parse = function(dump) {
-		var data = new ArrayBuffer();
+	Dump.prototype.parse = function(slist) {
+		var r = /(?:0x)?[0-9a-fA-F]{1,2}/g;
 
-		return data;
+		var match;
+		var i = 0
+		while ((match = r.exec(slist)) != null) {
+			i++;
+		}
+		var buf = new Uint8Array(i);
+		i = 0
+		while ((match = r.exec(slist)) != null) {
+			buf[i++] = parseInt(match[0], 16);
+		}
+
+		return buf;
 	}
 
 	return Dump;
