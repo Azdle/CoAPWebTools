@@ -15,15 +15,15 @@ var WebDatagramSocket = (function() {
 
 		this.options = {
 			useKeepalive: options.useKeepalive || true,
-			server: options.server || "wss://webdatagram.herokuapp.com"
+			urlBase: options.urlBase || "wss://coap.herokuapp.com/wdp"
 		};
 
 		// callback that gets the message as a UInt8Array
 		this.onmessage = null;
 
 		// setup websocket connection to proxy
-		console.log(this.options.server+"/"+host+"/"+port+"/")
-		this.ws = new WebSocket(this.options.server+"/"+host+"/"+port+"/", ["wdp"]);
+		console.log(this.options.urlBase+"/"+host+"/"+port+"/")
+		this.ws = new WebSocket(this.options.urlBase+"/"+host+"/"+port+"/", ["wdp"]);
 		this.ws.binaryType = "arraybuffer";
 		this.ws.connection_time = Date.now();
 
@@ -48,7 +48,7 @@ var WebDatagramSocket = (function() {
 				console.log("Seconds since open: ", (Date.now() - this.ws.connection_time)/1000);
 				if(this.ws.connection_time < (Date.now() - 5000)){
 					console.log("Abnormal Close, Re-creating Websocket")
-					var new_ws = new WebSocket(this.options.server+"/"+this.host+"/"+this.port+"/", ["wdp"]);
+					var new_ws = new WebSocket(this.options.urlBase+"/"+this.host+"/"+this.port+"/", ["wdp"]);
 					new_ws.binaryType = "arraybuffer";
 					//new_ws.onmessage = handleIncomingMessage.bind(this);
 					//new_ws.onclose = handleClose.bind(this);

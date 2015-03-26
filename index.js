@@ -6,7 +6,7 @@ var express = require("express");
 var app = express();
 var port = process.env.PORT || 5000;
 
-var host_port_re = new RegExp("\/([^\/]+)/([0-9]+)\/?");
+var host_port_re = new RegExp("\/wdp\/([^\/]+)/([0-9]+)\/?");
 
 var whitelist = [
   {host: RegExp("localhost"), port: RegExp("\\d+")},
