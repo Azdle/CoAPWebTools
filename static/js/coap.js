@@ -334,7 +334,7 @@ var Coap = (function() {
 
 		// Type
 		if (this.types[msg.type] !== undefined) {
-			pkt[0] |= (msg.type << 4);
+			pkt[0] |= (this.types[msg.type] << 4);
 		} else {
 			console.error("Unknown Type: "+msg.type);
 			return null;
