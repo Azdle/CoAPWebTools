@@ -62,16 +62,18 @@
 			function coapInputFilterCON(text, callback){
 				wd.onmessage = function(ab){
 					var cmsg = c.parse(ab)
+					console.log("Received: " + JSON.stringify(cmsg))
 
 					if (cmsg.type == "CON") {
-						console.log("Sending RST On: " + JSON.stringify(cmsg))
-						var ackmsg = c.dump({type:"ACK",code:"EMPTY", mid:cmsg.mid, token:cmsg.token})
+						var ackmsg = c.dump({type:"RST",code:"EMPTY", mid:cmsg.mid})
+						console.log("Sending RST: " + JSON.stringify(c.parse(ackmsg)))
 						wd.send(ackmsg);
 					}
 
 					callback(JSON.stringify(cmsg, null, "  "))
 				}
 				//console.log(text)
+				console.log("Sending: " + JSON.stringify(JSON.parse(text)))
 				var pkt = c.dump(JSON.parse(text));
 				wd.send(pkt);
 			}
@@ -79,17 +81,18 @@
 			function coapInputAutoACK(text, callback){
 				wd.onmessage = function(ab){
 					var cmsg = c.parse(ab)
+					console.log("Received: " + JSON.stringify(cmsg))
 
 					// This is a bad idea generally. In the real world you should verify stuff.
 					if (cmsg.type == "CON") {
-						console.log("Auto ACKing: " + JSON.stringify(cmsg))
-						var ackmsg = c.dump({type:"ACK",code:"EMPTY", mid:cmsg.mid, token:cmsg.token})
-						console.log("with: " + JSON.stringify(ackmsg))
+						var ackmsg = c.dump({type:"ACK",code:"EMPTY", mid:cmsg.mid})
+						console.log("Sending ACK: " + JSON.stringify(c.parse(ackmsg)))
 						wd.send(ackmsg);
 					}
 					callback(JSON.stringify(cmsg, null, "  "))
 				}
 				//console.log(text)
+				console.log("Sending Something: " + JSON.stringify(JSON.parse(text)))
 				var pkt = c.dump(JSON.parse(text));
 				wd.send(pkt);
 			}
