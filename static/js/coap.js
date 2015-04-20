@@ -207,15 +207,13 @@ var Coap = (function() {
 		}
 
 		if (typeof(pkt) !== "object" || pkt.constructor !== Uint8Array) {
-			console.error("Can only parse Uint8Array.");
-			return null;
+			throw new Error("Can Only Parse Uint8Array");
 		}
 
 		if (pkt[0] >> 6 == 1) {
 			msg.version = 1;
 		} else {
-			console.error("CoAP Version Must be 1");
-			return null;
+			throw new Error("CoAP Version Must be 1");
 		}
 
 		// Type
@@ -233,8 +231,7 @@ var Coap = (function() {
 		// Token
 		var tkl = pkt[0] & 0x0F;
 		if (tkl > 8) {
-			console.error("Bad Token Length");
-			return null;
+			throw new Error("Bad Token Length");
 		}
 
 		msg.token = new Uint8Array(pkt.buffer, pkt.byteOffset + 4, tkl);
@@ -272,8 +269,7 @@ var Coap = (function() {
 				opt_num = (opt_bytes[1] << 8) | opt_bytes[2] + 269;
 				offset += 2;
 			} else if (opt_num == 15) {
-				console.error("Invalid Option Delta: 15");
-				return null;
+				throw new Error("Invalid Option Delta: 15");
 			}
 
 			if (opt_len == 13) {
@@ -283,8 +279,7 @@ var Coap = (function() {
 				opt_len = (opt_bytes[1 + offset] << 8) | opt_bytes[2 + offset] + 269;
 				offset += 2;
 			} else if (opt_len == 15) {
-				console.error("Invalid Option Length: 15");
-				return null;
+				throw new Error("Invalid Option Length: 15");
 			}
 
 			opt_num += last_opt_num;
@@ -321,23 +316,20 @@ var Coap = (function() {
 		var pkt = new Uint8Array(buf);
 
 		if (typeof(msg) !== "object") {
-			console.error("Can only parse Uint8Array.");
-			return null;
+			throw new Error("Message Must be an Object");
 		}
 
 		if (msg.version == 1 || msg.version == undefined) {
 			pkt[0] = 1 << 6;
 		} else {
-			console.error("CoAP Version Must be 1");
-			return null;
+			throw new Error("CoAP Version Must be 1");
 		}
 
 		// Type
 		if (this.types[msg.type] !== undefined) {
 			pkt[0] |= (this.types[msg.type] << 4);
 		} else {
-			console.error("Unknown Type: "+msg.type);
-			return null;
+			throw new Error("Unknown Type: "+msg.type);
 		}
 
 		// Code
@@ -346,8 +338,7 @@ var Coap = (function() {
 		} else if (typeof(msg.code) === "number") {
 			pkt[1] = msg.code & 0xFF;
 		} else {
-			console.error("Unknown Code: "+msg.code);
-			return null;
+			throw new Error("Unknown Code: "+msg.code);
 		}
 
 		// Message ID
@@ -359,8 +350,7 @@ var Coap = (function() {
 		var tkl = 0;
 		if (typeof(msg.token) === "object" && msg.token.length > 0) {
 			if (msg.token.length > 8) {
-				console.error("Bad Token Length");
-				return null;
+				throw new Error("Bad Token Length");
 			}
 
 			pkt[0] |= msg.token.length;
@@ -379,7 +369,7 @@ var Coap = (function() {
 					msg.opts[this.optnums[key]] = msg.opts[key];
 					delete msg.opts[key];
 				} else if (isNaN(parseInt(key))) {
-					console.error("Unknown Option: "+key);
+					throw new Error("Unknown Option: "+key);
 				}
 			}
 
@@ -397,8 +387,7 @@ var Coap = (function() {
 					} else if (typeof(opt) === "object" && opt.constructor === ArrayBuffer) {
 						opt = new Uint8Array(opt);
 					} else if (typeof(opt) !== "object" || opt.constructor !== Uint8Array) {
-						console.error("Can only parse Uint8Array or String.");
-						return null;
+						throw new Error("Option Value Must be Uint8Array or String");
 					}
 
 					var num = parseInt(key) - last_opt_num;
@@ -417,8 +406,7 @@ var Coap = (function() {
 						pkt[index++] = (num - 269) && 0xFF;
 						offset += 3;
 					} else {
-						console.error("Invalid Option Number: "+num);
-						return null;
+						throw new Error("Invalid Option Number: "+num);
 					}
 
 					if (opt.length < 13) {
@@ -431,8 +419,7 @@ var Coap = (function() {
 						pkt[index++] = (opt.length - 269) >> 8;
 						pkt[index++] = (opt.length - 269) && 0xFF;
 					} else {
-						console.error("Invalid Option Length: "+opt.length);
-						return null;
+						throw new Error("Invalid Option Length: "+opt.length);
 					}
 
 					// Copy Option Value
@@ -458,8 +445,7 @@ var Coap = (function() {
 			} else if (typeof(msg.payload) === "object" && msg.payload.constructor === ArrayBuffer) {
 				msg.payload = new Uint8Array(msg.payload);
 			} else if (typeof(msg.payload) !== "object" || msg.payload.constructor !== Uint8Array) {
-				console.error("Can only parse Uint8Array or String.");
-				return null;
+				throw new Error("Payload Must be Uint8Array or String");
 			}
 
 			var payload_offset = index;
