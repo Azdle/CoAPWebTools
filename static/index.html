@@ -61,39 +61,75 @@
 
 			function coapInputFilterCON(text, callback){
 				wd.onmessage = function(ab){
-					var cmsg = c.parse(ab)
+					try{
+						var cmsg = c.parse(ab)
+					} catch (e) {
+						console.log("Error while parsing message: " + e.message);
+						callback("Error while parsing message: " + e.message);
+						return;
+					}
 					console.log("Received: " + JSON.stringify(cmsg))
 
 					if (cmsg.type == "CON") {
-						var ackmsg = c.dump({type:"RST",code:"EMPTY", mid:cmsg.mid})
+						try{
+							var ackmsg = c.dump({type:"RST",code:"EMPTY", mid:cmsg.mid})
+						} catch (e) {
+							console.log("Error while dumping message: " + e.message);
+							callback("Error while dumping message: " + e.message);
+							return;
+						}
 						console.log("Sending RST: " + JSON.stringify(c.parse(ackmsg)))
 						wd.send(ackmsg);
+						return;
 					}
 
 					callback(JSON.stringify(cmsg, null, "  "))
 				}
-				//console.log(text)
-				console.log("Sending: " + JSON.stringify(JSON.parse(text)))
-				var pkt = c.dump(JSON.parse(text));
+				try{
+					console.log("Sending: " + JSON.stringify(JSON.parse(text)))
+					var pkt = c.dump(JSON.parse(text));
+				} catch (e) {
+					console.log("Error while parsing input: " + e.message);
+					callback("Error while parsing input: " + e.message);
+					return;
+				}
 				wd.send(pkt);
 			}
 
 			function coapInputAutoACK(text, callback){
 				wd.onmessage = function(ab){
-					var cmsg = c.parse(ab)
+					try{
+						var cmsg = c.parse(ab)
+					} catch (e) {
+						console.log("Error while parsing message: " + e.message);
+						callback("Error while parsing message: " + e.message);
+						return;
+					}
 					console.log("Received: " + JSON.stringify(cmsg))
 
 					// This is a bad idea generally. In the real world you should verify stuff.
 					if (cmsg.type == "CON") {
-						var ackmsg = c.dump({type:"ACK",code:"EMPTY", mid:cmsg.mid})
+						try{
+							var ackmsg = c.dump({type:"ACK",code:"EMPTY", mid:cmsg.mid})
+						} catch (e) {
+							console.log("Error while dumping message: " + e.message);
+							callback("Error while dumping message: " + e.message);
+							return;
+						}
 						console.log("Sending ACK: " + JSON.stringify(c.parse(ackmsg)))
 						wd.send(ackmsg);
 					}
 					callback(JSON.stringify(cmsg, null, "  "))
 				}
 				//console.log(text)
-				console.log("Sending Something: " + JSON.stringify(JSON.parse(text)))
-				var pkt = c.dump(JSON.parse(text));
+				try{
+					console.log("Sending Something: " + JSON.stringify(JSON.parse(text)))
+					var pkt = c.dump(JSON.parse(text));
+				} catch (e) {
+					console.log("Error while parsing input: " + e.message);
+					callback("Error while parsing input: " + e.message);
+					return;
+				}
 				wd.send(pkt);
 			}
 
@@ -171,6 +207,8 @@
 			if (modeChk !== null) {
 				modeChk.onchange = ackOnOff;
 				ackOnOff();
+			}else {
+				console.error("Mode Checkbox Didn't Exist");
 			}
 		</script>
 	</body>
