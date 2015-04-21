@@ -344,7 +344,7 @@ var Coap = (function() {
 			throw new Error("Bad Token Length");
 		}
 
-		msg.token = new Uint8Array(pkt.buffer, pkt.byteOffset + 4, tkl);
+		msg.token = Array.from(new Uint8Array(pkt.buffer, pkt.byteOffset + 4, tkl));
 
 		// create view to option bytes
 		var opt_bytes = new Uint8Array(pkt.buffer, pkt.byteOffset + 4 + tkl, pkt.length - (4 + tkl));
