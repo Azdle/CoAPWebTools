@@ -66,7 +66,7 @@ var Coap = (function() {
 			return out;
 	}
 
-	function makeStringOptHandler(minLen, maxLen, def) {
+	function makeStringOptParser(minLen, maxLen) {
 		var decoder = new TextDecoder('utf-8');
 		return function(value) {
 			if (value.length < minLen || value.length > maxLen) {
@@ -78,7 +78,7 @@ var Coap = (function() {
 		}
 	}
 
-	function makeUintOptHandler(minLen, maxLen, def) {
+	function makeUintOptParser(minLen, maxLen) {
 		return function(value) {
 			if (value.length < minLen || value.length > maxLen) {
 				console.error("Option Value Outside Allowable Length");
@@ -100,6 +100,44 @@ var Coap = (function() {
 
 	function contentFormatIParser(value) {
 		
+	}
+
+	function makeStringOptDumper(minLen, maxLen) {
+		var encoder = new TextEncoder('utf-8');
+		return function(value, exisitng) {
+			if (typeof(value) !== "string") {
+				throw new Error("Value of String-Type Option Must be String")
+			}
+
+			if (value.length < minLen || value.length > maxLen) {
+				console.error("Option Value Outside Allowable Length");
+				return null;
+			}
+
+			return encoder.encode(value);
+		}
+	}
+
+	function makeUintOptDumper(minLen, maxLen) {
+		return function(value, existing) {
+			if (typeof(value) !== "number") {
+				throw new Error("Value of Uint-Type Option Must be Number")
+			}
+
+			var encLen = Math.ceil(Math.log2(value+1)/8)
+
+			if (encLen < minLen || encLen > maxLen) {
+				console.error("Value of Uint-Type Option Outside Allowable Range");
+				return null;
+			}
+
+			var encoded_value = new Uint8Array(encLen);
+			for (var i = encLen - 1; i >= 0; i--) {
+				encoded_value[i] = (value >> (i*8)) & 0xFF;
+			};
+
+			return encoded_value;
+		}
 	}
 
 	//
@@ -147,53 +185,125 @@ var Coap = (function() {
 
 	Coap.prototype.icodes = invert(Coap.prototype.codes)
 
-	Coap.prototype.optnums = {
-		IfMatch: 1,
-		UriHost: 3,
-		ETag: 4,
-		IfNoneMatch: 5,
-		Observe: 6,
-		UriPort: 7,
-		LocationPath: 8,
-		UriPath: 11,
-		ContentFormat: 12,
-		MaxAge: 14,
-		UriQuery: 15,
-		Accept: 17,
-		LocationQuery: 20,
-		Block2: 23,
-		Block1: 27,
-		Size2: 28,
-		ProxyUri: 35,
-		ProxyScheme: 39,
-		Size1: 60,
+	Coap.prototype.opt = {
+		IfMatch: {
+			num: 1,
+			isRepeatable: false
+		},
+		UriHost: {
+			num: 3,
+			parser: makeStringOptParser(1,255),
+			dumper: makeStringOptDumper(1,255),
+			isRepeatable: false
+		},
+		ETag: {
+			num: 4,
+			isRepeatable: false
+		},
+		IfNoneMatch: {
+			num: 5,
+			parser: makeUintOptParser(0,0),
+			dumper: makeUintOptDumper(0,0),
+			isRepeatable: false
+		},
+		Observe: {
+			num: 6,
+			parser: makeUintOptParser(0,3),
+			dumper: makeUintOptDumper(0,3),
+			isRepeatable: false
+		},
+		UriPort: {
+			num: 7,
+			parser: makeUintOptParser(0,2),
+			dumper: makeUintOptDumper(0,2),
+			isRepeatable: false
+		},
+		LocationPath: {
+			num: 8,
+			parser: makeStringOptParser(0,255),
+			dumper: makeStringOptDumper(0,255),
+			isRepeatable: true
+		},
+		UriPath: {
+			num: 11,
+			parser: makeStringOptParser(0,255),
+			dumper: makeStringOptDumper(0,255),
+			isRepeatable: true
+		},
+		ContentFormat: {
+			num: 12,
+			parser: makeUintOptParser(0,2),
+			dumper: makeUintOptDumper(0,2),
+			isRepeatable: false
+		},
+		MaxAge: {
+			num: 14,
+			parser: makeUintOptParser(0,4),
+			dumper: makeUintOptDumper(0,4),
+			isRepeatable: false,
+			defaultValue: 60
+		},
+		UriQuery: {
+			num: 15,
+			parser: makeStringOptParser(0,255),
+			dumper: makeStringOptDumper(0,255),
+			isRepeatable: true
+		},
+		Accept: {
+			num: 17,
+			parser: makeUintOptParser(0,2),
+			dumper: makeUintOptDumper(0,2),
+			isRepeatable: false
+		},
+		LocationQuery: {
+			num: 20,
+			parser: makeStringOptParser(0,255),
+			dumper: makeStringOptDumper(0,255),
+			isRepeatable: true
+		},
+		Block2: {
+			num: 23,
+			parser: makeUintOptParser(0,4),
+			dumper: makeUintOptDumper(0,4),
+			isRepeatable: false
+		},
+		Block1: {
+			num: 27,
+			parser: makeUintOptParser(0,4),
+			dumper: makeUintOptDumper(0,4),
+			isRepeatable: false
+		},
+		Size2: {
+			num: 28,
+			parser: makeUintOptParser(0,4),
+			dumper: makeUintOptDumper(0,4),
+			isRepeatable: false
+		},
+		ProxyUri: {
+			num: 35,
+			parser: makeStringOptParser(0,255),
+			dumper: makeStringOptDumper(0,255),
+			isRepeatable: false
+		},
+		ProxyScheme: {
+			num: 39,
+			parser: makeStringOptParser(0,255),
+			dumper: makeStringOptDumper(0,255),
+			isRepeatable: false
+		},
+		Size1: {
+			num: 60,
+			parser: makeUintOptParser(0,4),
+			dumper: makeUintOptDumper(0,4),
+			isRepeatable: false
+		}
 	}
 
-	Coap.prototype.ioptnums = invert(Coap.prototype.optnums)
-
-	Coap.prototype.optparser = {
-		//IfMatch: 1,
-		UriHost: makeStringOptHandler(1,255), //note default is ip literal of dest server, unsupported
-		//ETag: 4,
-		IfNoneMatch: makeUintOptHandler(0,0), //must be empty
-		Observe: makeUintOptHandler(0,3),
-		UriPort: makeUintOptHandler(0,2),
-		LocationPath: makeStringOptHandler(0,255),
-		UriPath: makeStringOptHandler(0,255),
-		ContentFormat: makeUintOptHandler(0,2),
-		MaxAge: makeUintOptHandler(0,4,60),
-		UriQuery: makeStringOptHandler(0,255),
-		Accept: makeUintOptHandler(0,2),
-		LocationQuery: makeStringOptHandler(0,255),
-		Block2: makeUintOptHandler(0,4),
-		Block1: makeUintOptHandler(0,4),
-		Size2: makeUintOptHandler(0,4),
-		ProxyUri: makeStringOptHandler(0,255),
-		ProxyScheme: makeStringOptHandler(0,255),
-		Size1: makeUintOptHandler(0,4),
-	}
-
-	//Coap.prototype.ioptparser = invert(Coap.prototype.optnums)
+	Coap.prototype.ioptnums = {};
+	Object.keys(Coap.prototype.opt)
+		.map(function (key) {
+			return Coap.prototype.ioptnums[Coap.prototype.opt[key].num] = key;
+		});
 
 	//
 	// Public Functions
@@ -295,8 +405,8 @@ var Coap = (function() {
 			}
 
 			var opt_view = new Uint8Array(opt_bytes.buffer, opt_bytes.byteOffset + offset+1, opt_len);
-			if (this.optparser[opt_name] !== undefined){
-				msg.opts[opt_name].push(this.optparser[opt_name](opt_view));
+			if (this.opt[opt_name].parser !== undefined){
+				msg.opts[opt_name].push(this.opt[opt_name].parser(opt_view));
 			} else {
 				msg.opts[opt_name].push(opt_view);
 			}
@@ -307,6 +417,15 @@ var Coap = (function() {
 				break;
 			}
 		}
+
+		// flatten options where possible
+		for (var i in msg.opts) {
+			if (this.opt[i].isRepeatable != true && msg.opts[i].length > 1) {
+				throw new Error("Non-Repeatable Option "+i+" Occurs More than Once");
+			} else if (msg.opts[i].length == 1) {
+				msg.opts[i] = msg.opts[i][0];
+			}
+		};
 
 		return msg;
 	}
@@ -365,8 +484,8 @@ var Coap = (function() {
 		if (typeof(msg.opts) === "object") {
 			// Transform Option Names to Numbers
 			for(var key in msg.opts) {
-				if (this.optnums[key] !== undefined) {
-					msg.opts[this.optnums[key]] = msg.opts[key];
+				if (this.opt[key].num !== undefined) {
+					msg.opts[this.opt[key].num] = msg.opts[key];
 					delete msg.opts[key];
 				} else if (isNaN(parseInt(key))) {
 					throw new Error("Unknown Option: "+key);
@@ -380,9 +499,17 @@ var Coap = (function() {
 			var last_opt_num = 0;
 			for(var i in optkeys){
 				var key = optkeys[i];
+				var opt_name = this.ioptnums[key];
+				if (msg.opts[key] instanceof Array && msg.opts[key].length > 1 && this.opt[opt_name].isRepeatable == false) {
+					throw new Error("Non-Repeatable Option "+opt_name+" Occurs More than Once");
+				} else if (!(msg.opts[key] instanceof Array)) {
+					msg.opts[key] = [msg.opts[key]]
+				};
 				for(var j in msg.opts[key]){
 					var opt = msg.opts[key][j];
-					if (typeof(opt) == "string") {
+					if (opt_name != undefined && this.opt[opt_name].dumper !== undefined){
+						opt = this.opt[opt_name].dumper(opt);
+					} else if (typeof(opt) == "string") {
 						opt = new TextEncoder('utf-8').encode(opt);
 					} else if (typeof(opt) === "object" && opt.constructor === ArrayBuffer) {
 						opt = new Uint8Array(opt);
